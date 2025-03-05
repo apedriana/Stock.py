@@ -37,5 +37,5 @@ tzdata==2025.1
 urllib3==1.26.20
 w3lib==2.3.1
 websockets==10.4
-yahoo-fin==0.8.9.1
+yfinance==0.2.54
 zipp==3.21.0
