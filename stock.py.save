@@ -1,0 +1,155 @@
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+from yahoo_fin.stock_info import get_data
+from ta.momentum import RSIIndicator
+from ta.trend import SMAIndicator, EMAIndicator
+
+def get_stock_data(ticker, start_date='2023-01-01', end_date='2025-01-01'):
+    """Fetch stock data from Yahoo Finance."""
+    df = get_data(ticker, start_date=start_date, end_date=end_date)
+    df = df[['open', 'high', 'low', 'close', 'volume']]
+    return df
+
+def add_indicators(df, short_window=14, long_window=50, rsi_window=14):
+    """Add RSI, SMA, and EMA indicators to the DataFrame."""
+    df['SMA'] = SMAIndicator(df['close'], window=long_window).sma_indicator()
+    df['EMA'] = EMAIndicator(df['close'], window=short_window).ema_indicator()
+    df['RSI'] = RSIIndicator(df['close'], window=rsi_window).rsi()
+    return df
+
+def price_action(df):
+    """Detect simple price action patterns like higher highs and lower lows."""
+    df['Higher_High'] = df['high'] > df['high'].shift(1)
+    df['Lower_Low'] = df['low'] < df['low'].shift(1)
+    return df
+
+def risk_management(balance, risk_per_trade=0.02, stop_loss_pct=0.03):
+    """Calculate position sizing based on risk management rules."""
+    risk_amount = balance * risk_per_trade
+    stop_loss = stop_loss_pct * balance
+    position_size = risk_amount / stop_loss
+    return position_size
+
+def analyze_stock(ticker, balance=10000):
+    """Fetch stock data, apply indicators, and suggest a strategy."""
+    df = get_stock_data(ticker)
+    df = add_indicators(df)
+    df = price_action(df)
+    
+    position_size = risk_management(balance)    
+    latest_data = df.iloc[-1]
+    
+    print(f"Analyzing {ticker}...")
+    print(f"Latest Close Price: ${latest_data['close']:.2f}")
+    print(f"RSI: {latest_data['RSI']:.2f}")
+    print(f"SMA: ${latest_data['SMA']:.2f}, EMA: ${latest_data['EMA']:.2f}")
+    
+    if latest_data['RSI'] < 30 and latest_data['close'] > latest_data['SMA']:
+        print("Bullish Signal: RSI is oversold and price is above SMA. Consider buying.")
+    elif latest_data['RSI'] > 70 and latest_data['close'] < latest_data['SMA']:
+        print("Bearish Signal: RSI is overbought and price is below SMA. Consider selling.")
+    else:
+        print("No strong signal detected.")
+    
+    print(f"Recommended Position Size: {position_size:.2f} shares based on risk management.")
+    
+    # Plot data
+    plt.figure(figsize=(10, 5))
+    plt.plot(df['close'], label='Close Price', color='blue')
+    plt.plot(df['SMA'], label='50-day SMA', color='red', linestyle='dashed')
+    plt.plot(df['EMA'], label='14-day EMA', color='green', linestyle='dotted')
+    plt.legend()
+    plt.title(f"{ticker} Stock Price with Indicators")
+    plt.xlabel("Date")
+    plt.ylabel("Price")
+    plt.show()
+
+# Example usage
+ticker = input("Enter stock ticker: ")
+analyze_stock(ticker)
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+from yahoo_fin.stock_info import get_data
+from ta.momentum import RSIIndicator
+from ta.trend import SMAIndicator, EMAIndicator
+
+
+def get_stock_data(ticker, start_date="2023-01-01", end_date="2025-01-01"):
+    """Fetch stock data from Yahoo Finance."""
+    try:
+        df = get_data(ticker, start_date=start_date, end_date=end_date)
+        df = df[["open", "high", "low", "close", "volume"]]
+        return df
+    except Exception as e:
+        print(f"Error fetching data for {ticker}: {e}")
+        return None
+
+
+def add_indicators(df, short_window=14, long_window=50, rsi_window=14):
+    """Add RSI, SMA, and EMA indicators to the DataFrame."""
+    df["SMA"] = SMAIndicator(df["close"], window=long_window).sma_indicator()
+    df["EMA"] = EMAIndicator(df["close"], window=short_window).ema_indicator()
+    df["RSI"] = RSIIndicator(df["close"], window=rsi_window).rsi()
+    return df
+
+
+def price_action(df):
+    """Detect simple price action patterns like higher highs and lower lows."""
+    df["Higher_High"] = df["high"] > df["high"].shift(1)
+    df["Lower_Low"] = df["low"] < df["low"].shift(1)
+    return df
+
+
+def risk_management(balance, risk_per_trade=0.02, stop_loss_pct=0.03, stock_price=100):
+    """Calculate position sizing based on risk management rules."""
+    risk_amount = balance * risk_per_trade
+    position_size = risk_amount / (stock_price * stop_loss_pct)
+    return round(position_size, 2)
+
+
+def analyze_stock(ticker, balance=10000):
+    """Fetch stock data, apply indicators, and suggest a strategy."""
+    df = get_stock_data(ticker)
+    if df is None:
+        print(f"Could not retrieve stock data for {ticker}. Exiting.")
+        return
+
+    df = add_indicators(df)
+    df = price_action(df)
+
+    latest_data = df.iloc[-1]
+
+    position_size = risk_management(balance, stock_price=latest_data["close"])
+
+    print(f"\nAnalyzing {ticker}...")
+    print(f"Latest Close Price: ${latest_data['close']:.2f}")
+    print(f"RSI: {latest_data['RSI']:.2f}")
+    print(f"SMA: ${latest_data['SMA']:.2f}, EMA: ${latest_data['EMA']:.2f}")
+
+    if latest_data["RSI"] < 30 and latest_data["close"] > latest_data["SMA"]:
+        print("📈 Bullish Signal: RSI is oversold, and price is above SMA. Consider buying.")
+    elif latest_data["RSI"] > 70 and latest_data["close"] < latest_data["SMA"]:
+        print("📉 Bearish Signal: RSI is overbought, and price is below SMA. Consider selling.")
+    else:
+        print("⚖️ No strong signal detected.")
+
+    print(f"Recommended Position Size: {position_size} shares based on risk management.")
+
+    # Plot data
+    plt.figure(figsize=(10, 5))
+    plt.plot(df["close"], label="Close Price", color="blue")
+    plt.plot(df["SMA"], label="50-day SMA", color="red", linestyle="dashed")
+    plt.plot(df["EMA"], label="14-day EMA", color="green", linestyle="dotted")
+    plt.legend()
+    plt.title(f"{ticker} Stock Price with Indicators")
+    plt.xlabel("Date")
+    plt.ylabel("Price")
+    plt.show()
+
+
+# Example usage
+ticker = input("Enter stock ticker: ").upper()
+analyze_stock(ticker)
+
