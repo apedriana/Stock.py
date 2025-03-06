@@ -101,13 +101,20 @@ def analyze_stock(ticker, start_date, end_date, portfolio, trading_horizon="shor
     plt.ylabel("Price")
     plt.show()
 
-# User input
-ticker = input("Enter stock ticker: ").upper()
-start_date = input("Enter start date (YYYY-MM-DD): ")
-end_date = input("Enter end date (YYYY-MM-DD): ")
-portfolio = float(input("Enter your portfolio value: $"))
-trading_horizon = input("Enter your trading horizon (short, medium, long): ").lower()
+import os
 
-# Run analysis
-analyze_stock(ticker, start_date, end_date, portfolio, trading_horizon)
+if os.getenv("RENDER"):
+    # Use environment variables in Render
+    ticker = os.getenv("TICKER", "AAPL")  
+    start_date = os.getenv("START_DATE", "2024-01-01")  
+    end_date = os.getenv("END_DATE", "2024-12-31")
+else:
+    # Allow user input locally
+    ticker = input("Enter stock ticker: ").strip().upper() or "AAPL"
+    start_date = input("Enter start date (YYYY-MM-DD): ").strip() or "2024-01-01"
+    end_date = input("Enter end date (YYYY-MM-DD): ").strip() or "2024-12-31"
+
+print("Using stock ticker:", ticker)
+print("Start date:", start_date)
+print("End date:", end_date)
 
